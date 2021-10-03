@@ -17,9 +17,9 @@ services:
         # networks:
         #     - zikula
     db:
-        image: mysql:8.0.20
+        image: mariadb:10.4
         container_name: ${APP_NAME}_mysql
-        command: --default-authentication-plugin=mysql_native_password
+        # command: --default-authentication-plugin=mysql_native_password
         volumes:
             - "db_app:/var/lib/mysql"
             - "./etc/db/dumps:/var/tmp/dumps"
