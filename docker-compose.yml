@@ -1,46 +1,89 @@
 version: '3'
 
 services:
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: ${APP_NAME}_phpmyadmin
+        environment:
+            - PMA_ARBITRARY=1
+            - UPLOAD_LIMIT=300M          
+        ports:
+            - ${PORT_PHPMYADMIN:-8080}:80
+        volumes:
+            - /sessions
+        links:
+            - db
+        # networks:
+        #     - zikula
     db:
         image: mysql:8.0.20
+        container_name: ${APP_NAME}_mysql
         command: --default-authentication-plugin=mysql_native_password
         volumes:
             - "db_app:/var/lib/mysql"
+            - "./etc/db/dumps:/var/tmp/dumps"
+            # - "./docker/db/mycustom.cnf:/etc/mysql/conf.d/custom.cnf"
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
             MYSQL_DATABASE: ${MYSQL_DATABASE}
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
         ports:
-            - 3306:3306
-        networks:
-            - zikula
+            - ${PORT_DATABASE:-3306}:3306
+        # networks:
+        #     - zikula
     php:
         build:
             context: .
             dockerfile: docker/php/Dockerfile
             args:
-                TIMEZONE: ${TIMEZONE}
+                - TIMEZONE=${TIMEZONE}
+                - INSTALL_NODE=${INSTALL_NODE}    
+                - NODE_VERSION=${NODE_VERSION}    
+                - INSTALL_YARN=${INSTALL_YARN}    
+                - INSTALL_MYSQL=${INSTALL_MYSQL}    
+                - INSTALL_XDEBUG=${INSTALL_XDEBUG}    
+                - ADD_ALIASES=${ADD_ALIASES} 
+        container_name: ${APP_NAME}_php
+        entrypoint: sh /bin/entrypoint.sh php-fpm
         volumes:
-            - ./../core/:/var/www/zikula/
-        networks:
-            - zikula
+            - ./docker/php/entrypoint.sh:/bin/entrypoint.sh
+            - ${APP_PATH}:/var/www/zikula
+            - ./docker/php/php.ini:/usr/local/etc/conf.d/php.ini
+
+        links:
+            - db:mysqldb        
+        
+        ports:
+            - ${PORT_PHPDEV:-9000}:9000
+        # networks:
+        #     - zikula
     nginx:
         build:
             context: .
             dockerfile: docker/nginx/Dockerfile
+        container_name: ${APP_NAME}_nginx
         volumes:
-            - ./../core/:/var/www/zikula/
+            - ${APP_PATH}:/var/www/zikula
+            # - "./docker/nginx/nginx.conf:/etc/nginx/nginx.conf"
+            # - "./docker/nginx/application.conf:/etc/nginx/sites-available/application.conf"
+            # - "./docker/nginx/application.conf:/etc/nginx/sites-enabled/application"
+            # - "./log/nginx:/var/log/nginx"
         ports:
-            - 80:80
-        networks:
+            - ${PORT_HTTP:-80}:80
+            - ${PORT_HTTPS:-443}:443
+        depends_on:
+            - php
+            - db
+        # networks:
 #            - zikula
-            zikula:
-                aliases:
-                    - zikula.localhost
+            # zikula:
+            #     aliases:
+            #         - zikula.localhost
 
 volumes:
     db_app:
 
-networks:
-    zikula:
+# networks:
+#     zikula:
