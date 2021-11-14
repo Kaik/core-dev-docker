@@ -86,6 +86,6 @@ services:
 
 volumes:
     db_app:
-
+        name: db_${APP_NAME:-core}
 # networks:
 #     zikula:
