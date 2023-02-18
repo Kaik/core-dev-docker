@@ -16,13 +16,21 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libpng-dev \
     libjpeg-dev \
+    libwebp-dev \
+    libjpeg62-turbo-dev \
+    libxpm-dev \
     libicu-dev  \
     libonig-dev \
     libxslt1-dev \
     acl \
+    imagemagick libmagickwand-dev --no-install-recommends \
+    && pecl install imagick \
+    && docker-php-ext-enable imagick \
     && echo 'alias sf="php bin/console"' >> ~/.bashrc
 
-RUN docker-php-ext-configure gd
+# first configure the to-be-installed extension
+RUN docker-php-ext-configure gd --with-gd --with-webp-dir --with-jpeg-dir \
+    --with-png-dir --with-zlib-dir --with-xpm-dir --with-freetype-dir
 
 RUN docker-php-ext-install \
     zip xsl gd intl opcache exif mbstring
