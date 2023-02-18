@@ -53,6 +53,7 @@ services:
             - ${APP_PATH}:/var/www
             - ${UPLOADS_PATH}:/var/www/src/web/uploads
             - ./docker/php/php.ini:/usr/local/etc/conf.d/php.ini
+            - ./docker/php/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
         links:
             - db:mysqldb        
@@ -61,6 +62,8 @@ services:
             - ${PORT_PHPDEV:-9000}:9000
         # networks:
         #     - zikula
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
     nginx:
         build:
             context: .

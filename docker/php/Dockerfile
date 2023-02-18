@@ -45,7 +45,7 @@ RUN if [ ${INSTALL_MYSQL} = true ]; then \
 ARG INSTALL_XDEBUG=false
 RUN if [ ${INSTALL_XDEBUG} = true ]; then \
     #instal xdebug extension
-    pecl install xdebug && \
+    pecl install xdebug-3.1.5 && \
     docker-php-ext-enable xdebug \
 ;fi
 
