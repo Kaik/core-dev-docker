@@ -1,13 +1,12 @@
 version: '3'
 
 services:
-
     phpmyadmin:
         image: phpmyadmin/phpmyadmin
         container_name: ${APP_NAME}_phpmyadmin
         environment:
             PMA_ARBITRARY: 1
-            UPLOAD_LIMIT: 300M          
+            UPLOAD_LIMIT: 500M          
         ports:
             - ${PORT_PHPMYADMIN:-8080}:80
         volumes:
@@ -15,8 +14,8 @@ services:
             - ./docker/phpmyadmin/uploads.ini:/usr/local/etc/php/conf.d/php-phpmyadmin.ini
         links:
             - db
-        # networks:
-        #     - zikula
+        networks:
+            - mojecoventry
     db:
         image: mariadb:10.4
         container_name: ${APP_NAME}_mysql
@@ -30,10 +29,10 @@ services:
             MYSQL_DATABASE: ${MYSQL_DATABASE}
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-        ports:
-            - ${PORT_DATABASE:-3306}:3306
-        # networks:
-        #     - zikula
+        # ports:
+        #     - ${PORT_DATABASE:-3306}:3306
+        networks:
+            - mojecoventry
     php:
         build:
             context: .
@@ -56,12 +55,11 @@ services:
             - ./docker/php/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
         links:
-            - db:mysqldb        
-        
-        ports:
-            - ${PORT_PHPDEV:-9000}:9000
-        # networks:
-        #     - zikula
+            - db:mysqldb
+        # ports:
+        #     - ${PORT_PHPDEV:-9000}:9000
+        networks:
+            - mojecoventry
         extra_hosts:
             - "host.docker.internal:host-gateway"
     nginx:
@@ -84,14 +82,11 @@ services:
         depends_on:
             - php
             - db
-        # networks:
-#            - zikula
-            # zikula:
-            #     aliases:
-            #         - zikula.localhost
+        networks:
+            - mojecoventry
 
 volumes:
     db_app:
         name: db_${APP_NAME:-core}
-# networks:
-#     zikula:
+networks:
+    mojecoventry:
